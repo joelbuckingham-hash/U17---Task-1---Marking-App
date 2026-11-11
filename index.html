@@ -1,0 +1,1168 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CTEC Level 3 Sport - Unit 17 Task 1 Marking & Report Generator</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#f0f7ff',
+                            100: '#e0effe',
+                            500: '#0284c7',
+                            700: '#0369a1',
+                            800: '#075985',
+                            900: '#0c4a6e',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc;
+        }
+        .tab-btn.active {
+            border-bottom-color: #0284c7;
+            color: #0284c7;
+            font-weight: 600;
+            background-color: #ffffff;
+        }
+        /* Custom print styling */
+        @media print {
+            header, nav, .no-print, button, .feedback-card {
+                display: none !important;
+            }
+            body {
+                background: white !important;
+                color: black !important;
+            }
+            .print-only {
+                display: block !important;
+            }
+            .report-container {
+                box-shadow: none !important;
+                border: none !important;
+                padding: 0 !important;
+                margin: 0 !important;
+                width: 100% !important;
+            }
+        }
+        .toast-slide {
+            transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
+        }
+    </style>
+</head>
+<body class="text-slate-800 min-h-screen flex flex-col">
+
+    <!-- Top Toast Notification -->
+    <div id="toast" class="fixed top-5 right-5 z-50 transform translate-y-[-100px] opacity-0 toast-slide bg-slate-900 text-white px-5 py-3 rounded-lg shadow-xl flex items-center gap-3">
+        <svg class="w-5 h-5 text-emerald-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+        </svg>
+        <span id="toast-message" class="text-sm font-medium">Draft auto-saved successfully</span>
+    </div>
+
+    <!-- Header -->
+    <header class="bg-gradient-to-r from-brand-900 via-brand-800 to-slate-900 text-white shadow-md">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5">
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                <div>
+                    <div class="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-brand-100">
+                        <span>OCR CTEC Level 3 Sport & Physical Activity</span>
+                        <span>•</span>
+                        <span>Unit 17: Sports Injuries & Rehabilitation</span>
+                    </div>
+                    <h1 class="text-2xl sm:text-3xl font-bold tracking-tight mt-1">
+                        Task 1 Assessment & Draft Generator (LO1)
+                    </h1>
+                    <p class="text-xs sm:text-sm text-slate-300 mt-1">
+                        LO1: Know common sports injuries and their effects (P1, P2, M1 criteria)
+                    </p>
+                </div>
+                
+                <!-- Quick Status & Actions -->
+                <div class="flex flex-wrap items-center gap-3 bg-brand-900/60 p-3 rounded-xl border border-brand-700/50">
+                    <div class="text-right">
+                        <div class="text-xs text-slate-300">Overall Assessment Progress</div>
+                        <div class="text-lg font-bold text-emerald-400" id="overall-progress-text">0% Completed</div>
+                    </div>
+                    <div class="w-24 bg-slate-700 rounded-full h-3 overflow-hidden">
+                        <div id="overall-progress-bar" class="bg-emerald-400 h-full w-0 transition-all duration-500"></div>
+                    </div>
+                    <button id="reset-btn" class="ml-2 text-xs bg-slate-700 hover:bg-slate-600 text-slate-200 px-3 py-2 rounded-lg font-medium transition">
+                        Reset Draft
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Navigation Tabs -->
+    <nav class="bg-slate-200 border-b border-slate-300 sticky top-0 z-40 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 overflow-x-auto">
+            <div class="flex space-x-1 sm:space-x-4 min-w-max">
+                <button onclick="switchTab('p1-acute')" id="tab-p1-acute" class="tab-btn active px-4 py-3 border-b-4 border-transparent text-sm font-medium text-slate-600 hover:text-brand-700 flex items-center gap-2">
+                    <span class="w-6 h-6 rounded-full bg-blue-100 text-brand-700 text-xs font-bold flex items-center justify-center">P1</span>
+                    Acute Injuries
+                    <span id="badge-p1-acute" class="ml-1 px-2 py-0.5 text-xs rounded-full bg-slate-300 text-slate-700">0/5</span>
+                </button>
+
+                <button onclick="switchTab('p1-chronic')" id="tab-p1-chronic" class="tab-btn px-4 py-3 border-b-4 border-transparent text-sm font-medium text-slate-600 hover:text-brand-700 flex items-center gap-2">
+                    <span class="w-6 h-6 rounded-full bg-blue-100 text-brand-700 text-xs font-bold flex items-center justify-center">P1</span>
+                    Chronic Injuries
+                    <span id="badge-p1-chronic" class="ml-1 px-2 py-0.5 text-xs rounded-full bg-slate-300 text-slate-700">0/5</span>
+                </button>
+
+                <button onclick="switchTab('p2-psych')" id="tab-p2-psych" class="tab-btn px-4 py-3 border-b-4 border-transparent text-sm font-medium text-slate-600 hover:text-brand-700 flex items-center gap-2">
+                    <span class="w-6 h-6 rounded-full bg-purple-100 text-purple-700 text-xs font-bold flex items-center justify-center">P2</span>
+                    Psychological Effects
+                    <span id="badge-p2-psych" class="ml-1 px-2 py-0.5 text-xs rounded-full bg-slate-300 text-slate-700">0/6</span>
+                </button>
+
+                <button onclick="switchTab('m1-analysis')" id="tab-m1-analysis" class="tab-btn px-4 py-3 border-b-4 border-transparent text-sm font-medium text-slate-600 hover:text-brand-700 flex items-center gap-2">
+                    <span class="w-6 h-6 rounded-full bg-amber-100 text-amber-800 text-xs font-bold flex items-center justify-center">M1</span>
+                    Injury Analysis
+                    <span id="badge-m1-analysis" class="ml-1 px-2 py-0.5 text-xs rounded-full bg-slate-300 text-slate-700">0/2</span>
+                </button>
+
+                <button onclick="switchTab('final-report')" id="tab-final-report" class="tab-btn px-4 py-3 border-b-4 border-transparent text-sm font-medium text-slate-600 hover:text-brand-700 flex items-center gap-2">
+                    <span class="w-6 h-6 rounded-full bg-emerald-100 text-emerald-800 text-xs font-bold flex items-center justify-center">LO1</span>
+                    Final Report & Export
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content Container -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-grow">
+        
+        <!-- Guidance Banner -->
+        <div class="mb-6 bg-blue-50 border-l-4 border-brand-500 p-4 rounded-r-lg shadow-sm flex items-start gap-3">
+            <svg class="w-6 h-6 text-brand-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            <div class="text-sm text-slate-700">
+                <strong class="font-semibold text-slate-900">CTEC Grading Standard Reminder:</strong> 
+                <span id="guidance-text">
+                    For <strong>P1</strong>, describe signs and symptoms for <em>all 5 acute</em> and <em>all 5 chronic</em> injuries, including feasible causes. 
+                    Ensure you distinguish clearly between a <strong>sign</strong> (observable/objective, e.g., swelling, deformity) and a <strong>symptom</strong> (felt by athlete/subjective, e.g., throbbing pain, nausea).
+                </span>
+            </div>
+        </div>
+
+        <!-- SECTION 1: P1 ACUTE INJURIES -->
+        <section id="sec-p1-acute" class="tab-content block space-y-6">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-200 pb-4">
+                <div>
+                    <h2 class="text-2xl font-bold text-slate-900">P1: Describe Signs and Symptoms of Acute Sports Injuries</h2>
+                    <p class="text-sm text-slate-600 mt-1">
+                        Acute injuries occur suddenly due to a specific traumatic event (e.g. collision, fall, or overestimating ability). Describe the cause, signs, and symptoms for all 5 acute injuries listed.
+                    </p>
+                </div>
+                <button onclick="markSection('acute')" class="bg-brand-700 hover:bg-brand-800 text-white font-medium px-5 py-2.5 rounded-lg shadow transition flex items-center gap-2 self-start sm:self-auto">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    Mark & Provide Feedback (P1 Acute)
+                </button>
+            </div>
+
+            <!-- Feedback Summary Card -->
+            <div id="feedback-acute-summary" class="hidden rounded-xl p-5 border transition"></div>
+
+            <div id="acute-cards-container" class="space-y-6">
+                <!-- Javascript will render 5 cards for: Sprain, Strain, Broken Bones, Dislocation, Torn Ligament -->
+            </div>
+        </section>
+
+        <!-- SECTION 2: P1 CHRONIC INJURIES -->
+        <section id="sec-p1-chronic" class="tab-content hidden space-y-6">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-200 pb-4">
+                <div>
+                    <h2 class="text-2xl font-bold text-slate-900">P1: Describe Signs and Symptoms of Chronic Sports Injuries</h2>
+                    <p class="text-sm text-slate-600 mt-1">
+                        Chronic injuries develop slowly over time due to continuous stress (e.g. overuse, overtraining, poor technique, or inappropriate equipment). Describe cause, signs, and symptoms for all 5 chronic injuries.
+                    </p>
+                </div>
+                <button onclick="markSection('chronic')" class="bg-brand-700 hover:bg-brand-800 text-white font-medium px-5 py-2.5 rounded-lg shadow transition flex items-center gap-2 self-start sm:self-auto">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    Mark & Provide Feedback (P1 Chronic)
+                </button>
+            </div>
+
+            <div id="feedback-chronic-summary" class="hidden rounded-xl p-5 border transition"></div>
+
+            <div id="chronic-cards-container" class="space-y-6">
+                <!-- Javascript will render 5 cards for: Tennis Elbow, Golfer's Elbow, Shin Splints, Stress Fracture, Tendonitis -->
+            </div>
+        </section>
+
+        <!-- SECTION 3: P2 PSYCHOLOGICAL EFFECTS -->
+        <section id="sec-p2-psych" class="tab-content hidden space-y-6">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-200 pb-4">
+                <div>
+                    <h2 class="text-2xl font-bold text-slate-900">P2: Describe Possible Psychological Effects of Sports Injury</h2>
+                    <p class="text-sm text-slate-600 mt-1">
+                        Describe all 6 psychological effects from the teaching content. For each impact, detail a real-life athlete case example and cite your reference source.
+                    </p>
+                </div>
+                <button onclick="markSection('psych')" class="bg-brand-700 hover:bg-brand-800 text-white font-medium px-5 py-2.5 rounded-lg shadow transition flex items-center gap-2 self-start sm:self-auto">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    Mark & Provide Feedback (P2 Psych)
+                </button>
+            </div>
+
+            <div id="feedback-psych-summary" class="hidden rounded-xl p-5 border transition"></div>
+
+            <div id="psych-cards-container" class="space-y-6">
+                <!-- Javascript will render 6 cards: Anger, Anxiety, Depression, Isolation, Frustration, Lack of Confidence -->
+            </div>
+        </section>
+
+        <!-- SECTION 4: M1 INJURY ANALYSIS -->
+        <section id="sec-m1-analysis" class="tab-content hidden space-y-6">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-200 pb-4">
+                <div>
+                    <h2 class="text-2xl font-bold text-slate-900">M1: Analyse Mechanism, Physiological & Psychological Links</h2>
+                    <p class="text-sm text-slate-600 mt-1">
+                        To achieve Merit grade (M1), select <strong>1 Acute athlete example</strong> and <strong>1 Chronic athlete example</strong> (must be two distinct athletes). Analyse how the mechanism of injury directly links to physiological tissue damage and psychological outcomes.
+                    </p>
+                </div>
+                <button onclick="markSection('m1')" class="bg-amber-700 hover:bg-amber-800 text-white font-medium px-5 py-2.5 rounded-lg shadow transition flex items-center gap-2 self-start sm:self-auto">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    Mark & Provide Feedback (M1 Merit)
+                </button>
+            </div>
+
+            <div id="feedback-m1-summary" class="hidden rounded-xl p-5 border transition"></div>
+
+            <div id="m1-cards-container" class="space-y-8">
+                <!-- Javascript will render 2 detailed analysis cards: 1 Acute & 1 Chronic -->
+            </div>
+        </section>
+
+        <!-- SECTION 5: FINAL REPORT & EXPORT -->
+        <section id="sec-final-report" class="tab-content hidden space-y-6">
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-b border-slate-200 pb-4">
+                <div>
+                    <h2 class="text-2xl font-bold text-slate-900">Final Assignment Report Compiler & Exporter</h2>
+                    <p class="text-sm text-slate-600 mt-1">
+                        Compile your saved answers into a single, cohesive, formal UK report for submission. Sentence starters and prompts will be converted into clean assignment paragraphs.
+                    </p>
+                </div>
+                <div class="flex flex-wrap gap-2">
+                    <button onclick="compileFinalReport()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-4 py-2.5 rounded-lg shadow transition flex items-center gap-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                        </svg>
+                        Compile / Refresh Report
+                    </button>
+                </div>
+            </div>
+
+            <!-- Action Toolbar for Export -->
+            <div class="bg-slate-100 p-4 rounded-xl border border-slate-300 flex flex-wrap items-center justify-between gap-4">
+                <div class="text-sm font-medium text-slate-700">
+                    Report Controls & Download Formats:
+                </div>
+                <div class="flex flex-wrap gap-3">
+                    <button onclick="copyReportText()" class="bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 px-3.5 py-2 rounded-lg text-sm font-medium shadow-sm transition flex items-center gap-2">
+                        <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                        </svg>
+                        Copy Text
+                    </button>
+                    <button onclick="downloadReport('txt')" class="bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 px-3.5 py-2 rounded-lg text-sm font-medium shadow-sm transition flex items-center gap-2">
+                        <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                        </svg>
+                        Download (.txt)
+                    </button>
+                    <button onclick="downloadReport('doc')" class="bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 px-3.5 py-2 rounded-lg text-sm font-medium shadow-sm transition flex items-center gap-2">
+                        <svg class="w-4 h-4 text-brand-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                        </svg>
+                        Download Word (.doc)
+                    </button>
+                    <button onclick="window.print()" class="bg-brand-700 hover:bg-brand-800 text-white px-4 py-2 rounded-lg text-sm font-medium shadow transition flex items-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path>
+                        </svg>
+                        Print / Save as PDF
+                    </button>
+                </div>
+            </div>
+
+            <!-- Final Printable/Editable Report Area -->
+            <div class="bg-white p-8 rounded-xl border border-slate-300 shadow-md report-container space-y-6">
+                <div class="border-b border-slate-200 pb-4 mb-4 flex justify-between items-start">
+                    <div>
+                        <h3 class="text-2xl font-bold text-slate-900">OCR CTEC Level 3 Sport & Physical Activity</h3>
+                        <p class="text-base font-semibold text-brand-700">Unit 17: Sports Injuries and Rehabilitation - Task 1 Report</p>
+                        <p class="text-xs text-slate-500 mt-1">Learner Evidence for Assessment Criteria P1, P2, and M1</p>
+                    </div>
+                    <div class="text-right text-xs text-slate-500">
+                        <div>Date Compiled: <span id="report-date" class="font-medium text-slate-700">Not yet compiled</span></div>
+                        <div>Total Word Count: <span id="report-word-count" class="font-bold text-brand-700">0 words</span></div>
+                    </div>
+                </div>
+
+                <div class="space-y-4">
+                    <label for="final-report-editor" class="block text-sm font-semibold text-slate-700">
+                        Final Consolidated Report Text (Editable):
+                    </label>
+                    <textarea id="final-report-editor" rows="22" class="w-full p-4 border border-slate-300 rounded-lg font-sans text-slate-800 text-sm leading-relaxed focus:ring-2 focus:ring-brand-500 focus:outline-none bg-slate-50" placeholder="Click 'Compile / Refresh Report' above to generate your report..."></textarea>
+                    <p class="text-xs text-slate-500">
+                        * Note: You can make minor final edits directly inside this box before copying, printing, or downloading.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Custom Confirmation Modal (No browser alert) -->
+    <div id="custom-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-xl shadow-2xl max-w-md w-full p-6 space-y-4 border border-slate-200">
+            <h3 id="modal-title" class="text-lg font-bold text-slate-900">Reset All Evidence?</h3>
+            <p id="modal-message" class="text-sm text-slate-600">This action will clear all saved entries and reset feedback. This cannot be undone.</p>
+            <div class="flex justify-end gap-3 pt-2">
+                <button id="modal-cancel-btn" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-medium rounded-lg transition">Cancel</button>
+                <button id="modal-confirm-btn" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-lg transition">Confirm Reset</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-slate-900 text-slate-400 py-6 border-t border-slate-800 text-xs">
+        <div class="max-w-7xl mx-auto px-4 text-center space-y-2">
+            <p>CTEC Level 3 Sport and Physical Activity • Unit 17 (Sports Injuries and Rehabilitation)</p>
+            <p class="text-slate-500">Designed for OCR CTEC Level 3 Criteria LO1 (P1, P2, M1). UK English Specification Standard.</p>
+        </div>
+    </footer>
+
+    <!-- JavaScript Application Logic -->
+    <script>
+        // Data Structure for Unit 17 Task 1
+        const ACUTE_INJURIES = [
+            { id: 'sprain', name: 'Sprain', desc: 'Stretching or tearing of ligaments connecting bones at a joint.' },
+            { id: 'strain', name: 'Strain', desc: 'Stretching or tearing of muscle fibers or tendons.' },
+            { id: 'broken_bone', name: 'Broken Bone (Fracture)', desc: 'Break or crack in the continuity of a bone.' },
+            { id: 'dislocation', name: 'Dislocation', desc: 'Displacement of a bone from its normal position at a joint.' },
+            { id: 'torn_ligament', name: 'Torn Ligament', desc: 'Complete or severe partial rupture of a ligament (e.g. ACL, MCL).' }
+        ];
+
+        const CHRONIC_INJURIES = [
+            { id: 'tennis_elbow', name: 'Tennis Elbow', detail: 'Lateral Epicondylitis', desc: 'Overuse injury affecting forearm extensor tendons.' },
+            { id: 'golfers_elbow', name: 'Golfer\'s Elbow', detail: 'Medial Epicondylitis', desc: 'Overuse injury affecting forearm flexor tendons.' },
+            { id: 'shin_splints', name: 'Shin Splints', detail: 'Medial Tibial Stress Syndrome', desc: 'Inflammation of muscles/tendons along the tibia.' },
+            { id: 'stress_fracture', name: 'Stress Fracture', detail: 'Microscopic Bone Crack', desc: 'Small crack in bone caused by repetitive mechanical stress.' },
+            { id: 'tendonitis', name: 'Tendonitis', detail: 'Tendon Inflammation', desc: 'Acute or chronic inflammation of a tendon (e.g. Achilles, Patellar).' }
+        ];
+
+        const PSYCH_EFFECTS = [
+            { id: 'anger', name: 'Anger', prompt: 'e.g., if caused by another performer, foul play, or poor coaching advice' },
+            { id: 'anxiety', name: 'Anxiety', prompt: 'e.g., worried about length of recovery, retaining squad place, or returning to full capability' },
+            { id: 'depression', name: 'Depression', prompt: 'e.g., due to sudden inactivity, loss of athletic identity, or inability to carry on normally' },
+            { id: 'isolation', name: 'Isolation', prompt: 'e.g., unable to train with teammates, attend matches/tours, or take part in team social events' },
+            { id: 'frustration', name: 'Frustration', prompt: 'e.g., during slow rehabilitation, lack of visible progress, or minor setbacks' },
+            { id: 'lack_of_confidence', name: 'Lack of Confidence', prompt: 'e.g., hesitation upon return, fear of re-injury, not operating at 100% effort' }
+        ];
+
+        // Global State Store
+        let appState = {
+            acute: {},
+            chronic: {},
+            psych: {},
+            m1: {
+                acute: { name: '', injury: '', cause: '', physiological: '', psychological: '', consequence: '' },
+                chronic: { name: '', injury: '', cause: '', physiological: '', psychological: '', consequence: '' }
+            },
+            finalReportText: ''
+        };
+
+        // Initialize state objects
+        ACUTE_INJURIES.forEach(inj => {
+            appState.acute[inj.id] = { cause: '', sign: '', symptom: '' };
+        });
+        CHRONIC_INJURIES.forEach(inj => {
+            appState.chronic[inj.id] = { cause: '', sign: '', symptom: '' };
+        });
+        PSYCH_EFFECTS.forEach(eff => {
+            appState.psych[eff.id] = { impact: '', example: '', reference: '' };
+        });
+
+        // Load saved state from LocalStorage
+        function loadSavedData() {
+            try {
+                const saved = localStorage.getItem('ctec_u17_t1_state');
+                if (saved) {
+                    const parsed = JSON.parse(saved);
+                    appState = { ...appState, ...parsed };
+                }
+            } catch (e) {
+                console.error("Could not load local storage data", e);
+            }
+        }
+
+        // Save state to LocalStorage
+        function saveData() {
+            try {
+                localStorage.setItem('ctec_u17_t1_state', JSON.stringify(appState));
+                showToast('Progress auto-saved');
+                updateProgressIndicators();
+            } catch (e) {
+                console.error("Could not save to local storage", e);
+            }
+        }
+
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            const toastMsg = document.getElementById('toast-message');
+            toastMsg.innerText = msg;
+            toast.classList.remove('translate-y-[-100px]', 'opacity-0');
+            toast.classList.add('translate-y-0', 'opacity-100');
+            setTimeout(() => {
+                toast.classList.remove('translate-y-0', 'opacity-100');
+                toast.classList.add('translate-y-[-100px]', 'opacity-0');
+            }, 2500);
+        }
+
+        // Render Functions
+        function renderAcuteCards() {
+            const container = document.getElementById('acute-cards-container');
+            container.innerHTML = ACUTE_INJURIES.map((inj, index) => {
+                const val = appState.acute[inj.id] || { cause: '', sign: '', symptom: '' };
+                return `
+                <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden p-6 space-y-4">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-100 pb-3 gap-2">
+                        <div class="flex items-center gap-3">
+                            <span class="w-7 h-7 rounded-full bg-brand-100 text-brand-800 font-bold text-xs flex items-center justify-center">${index + 1}</span>
+                            <h3 class="text-xl font-bold text-slate-900">${inj.name}</h3>
+                        </div>
+                        <span class="text-xs text-slate-500 italic bg-slate-50 px-3 py-1 rounded-md border border-slate-200">${inj.desc}</span>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <!-- Cause -->
+                        <div class="space-y-2">
+                            <label class="block text-xs font-bold uppercase tracking-wider text-slate-700">
+                                Feasible Cause <span class="text-xs text-slate-400 font-normal">(Collision, Fall, Overestimating Ability)</span>
+                            </label>
+                            <div class="relative">
+                                <span class="text-xs text-brand-700 font-semibold block mb-1">A cause of a ${inj.name.toLowerCase()} could be...</span>
+                                <textarea id="acute_inj.idcause"oninput="handleInput('acute','{inj.id}', 'cause', this.value)" rows="4" class="w-full p-3 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:outline-none" placeholder="Explain how the collision, fall or technique leads to this injury...">${val.cause}</textarea>
+                            </div>
+                        </div>
+
+                        <!-- Sign -->
+                        <div class="space-y-2">
+                            <label class="block text-xs font-bold uppercase tracking-wider text-slate-700">
+                                Objective Sign <span class="text-xs text-slate-400 font-normal">(Observable / Measurable)</span>
+                            </label>
+                            <div class="relative">
+                                <span class="text-xs text-brand-700 font-semibold block mb-1">A sign of a ${inj.name.toLowerCase()} is...</span>
+                                <textarea id="acute_inj.idsign"oninput="handleInput('acute','{inj.id}', 'sign', this.value)" rows="4" class="w-full p-3 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:outline-none" placeholder="Describe visible signs (e.g. swelling, deformity, bruising, joint instability)...">${val.sign}</textarea>
+                            </div>
+                        </div>
+
+                        <!-- Symptom -->
+                        <div class="space-y-2">
+                            <label class="block text-xs font-bold uppercase tracking-wider text-slate-700">
+                                Subjective Symptom <span class="text-xs text-slate-400 font-normal">(Felt by Athlete)</span>
+                            </label>
+                            <div class="relative">
+                                <span class="text-xs text-brand-700 font-semibold block mb-1">A common symptom of a ${inj.name.toLowerCase()} is...</span>
+                                <textarea id="acute_inj.idsymptom"oninput="handleInput('acute','{inj.id}', 'symptom', this.value)" rows="4" class="w-full p-3 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:outline-none" placeholder="Describe symptoms felt by the athlete (e.g. sharp pain, throbbing, nausea, tenderness)...">${val.symptom}</textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                `;
+            }).join('');
+        }
+
+        function renderChronicCards() {
+            const container = document.getElementById('chronic-cards-container');
+            container.innerHTML = CHRONIC_INJURIES.map((inj, index) => {
+                const val = appState.chronic[inj.id] || { cause: '', sign: '', symptom: '' };
+                return `
+                <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden p-6 space-y-4">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-100 pb-3 gap-2">
+                        <div class="flex items-center gap-3">
+                            <span class="w-7 h-7 rounded-full bg-brand-100 text-brand-800 font-bold text-xs flex items-center justify-center">${index + 1}</span>
+                            <div>
+                                <h3 class="text-xl font-bold text-slate-900">${inj.name}</h3>
+                                <span class="text-xs font-semibold text-brand-600">${inj.detail}</span>
+                            </div>
+                        </div>
+                        <span class="text-xs text-slate-500 italic bg-slate-50 px-3 py-1 rounded-md border border-slate-200">${inj.desc}</span>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <!-- Cause -->
+                        <div class="space-y-2">
+                            <label class="block text-xs font-bold uppercase tracking-wider text-slate-700">
+                                Feasible Cause <span class="text-xs text-slate-400 font-normal">(Overuse, Overtraining, Kit, Technique)</span>
+                            </label>
+                            <div class="relative">
+                                <span class="text-xs text-brand-700 font-semibold block mb-1">A cause of ${inj.name.toLowerCase()} could be...</span>
+                                <textarea id="chronic_inj.idcause"oninput="handleInput('chronic','{inj.id}', 'cause', this.value)" rows="4" class="w-full p-3 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:outline-none" placeholder="Detail how repetitive stress, poor footwear, or poor technique causes this...">${val.cause}</textarea>
+                            </div>
+                        </div>
+
+                        <!-- Sign -->
+                        <div class="space-y-2">
+                            <label class="block text-xs font-bold uppercase tracking-wider text-slate-700">
+                                Objective Sign <span class="text-xs text-slate-400 font-normal">(Observable / Physical)</span>
+                            </label>
+                            <div class="relative">
+                                <span class="text-xs text-brand-700 font-semibold block mb-1">A sign of ${inj.name.toLowerCase()} is...</span>
+                                <textarea id="chronic_inj.idsign"oninput="handleInput('chronic','{inj.id}', 'sign', this.value)" rows="4" class="w-full p-3 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:outline-none" placeholder="Describe physical signs (e.g. localized swelling, point tenderness, thickening, gait changes)...">${val.sign}</textarea>
+                            </div>
+                        </div>
+
+                        <!-- Symptom -->
+                        <div class="space-y-2">
+                            <label class="block text-xs font-bold uppercase tracking-wider text-slate-700">
+                                Subjective Symptom <span class="text-xs text-slate-400 font-normal">(Felt by Athlete)</span>
+                            </label>
+                            <div class="relative">
+                                <span class="text-xs text-brand-700 font-semibold block mb-1">A common symptom of ${inj.name.toLowerCase()} is...</span>
+                                <textarea id="chronic_inj.idsymptom"oninput="handleInput('chronic','{inj.id}', 'symptom', this.value)" rows="4" class="w-full p-3 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:outline-none" placeholder="Describe symptoms felt (e.g. dull ache after activity, morning stiffness, burning sensation)...">${val.symptom}</textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                `;
+            }).join('');
+        }
+
+        function renderPsychCards() {
+            const container = document.getElementById('psych-cards-container');
+            container.innerHTML = PSYCH_EFFECTS.map((eff, index) => {
+                const val = appState.psych[eff.id] || { impact: '', example: '', reference: '' };
+                return `
+                <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden p-6 space-y-4">
+                    <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                        <div class="flex items-center gap-3">
+                            <span class="w-7 h-7 rounded-full bg-purple-100 text-purple-800 font-bold text-xs flex items-center justify-center">${index + 1}</span>
+                            <h3 class="text-xl font-bold text-slate-900">${eff.name}</h3>
+                        </div>
+                        <span class="text-xs text-purple-700 bg-purple-50 px-3 py-1 rounded-full font-medium border border-purple-200">${eff.prompt}</span>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
+                        <!-- Impact Description -->
+                        <div class="md:col-span-6 space-y-2">
+                            <label class="block text-xs font-bold uppercase tracking-wider text-slate-700">
+                                Psychological Impact Description
+                            </label>
+                            <span class="text-xs text-purple-700 font-semibold block mb-1">On becoming injured, a psychological impact could be ${eff.name.toLowerCase()} because...</span>
+                            <textarea id="psych_eff.idimpact"oninput="handleInput('psych','{eff.id}', 'impact', this.value)" rows="4" class="w-full p-3 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:outline-none" placeholder="Explain why an athlete experiences eff.name.toLowerCase()wheninjured...">{val.impact}</textarea>
+                        </div>
+
+                        <!-- Real-Life Athlete Example -->
+                        <div class="md:col-span-6 space-y-2">
+                            <label class="block text-xs font-bold uppercase tracking-wider text-slate-700">
+                                Real-Life Athlete Example & Citation
+                            </label>
+                            <span class="text-xs text-purple-700 font-semibold block mb-1">A real-life example of this happening is... (provide athlete name, sport, context)</span>
+                            <textarea id="psych_eff.idexample"oninput="handleInput('psych','{eff.id}', 'example', this.value)" rows="3" class="w-full p-3 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:outline-none" placeholder="Name athlete, sport, injury context and how they demonstrated eff.name.toLowerCase()...">{val.example}</textarea>
+                            
+                            <div class="pt-1">
+                                <label class="block text-xs font-semibold text-slate-600 mb-1">Reference / Citation Source:</label>
+                                <input type="text" id="psych_eff.idreference"value="{val.reference || ''}" oninput="handleInput('psych', '${eff.id}', 'reference', this.value)" class="w-full p-2 text-xs border border-slate-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:outline-none bg-slate-50" placeholder="e.g. BBC Sport (2021), 'Athlete Interview on Recovery', or Book/Journal source">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                `;
+            }).join('');
+        }
+
+        function renderM1Cards() {
+            const container = document.getElementById('m1-cards-container');
+            const acute = appState.m1.acute || {};
+            const chronic = appState.m1.chronic || {};
+
+            container.innerHTML = `
+                <!-- Acute Athlete Case Study -->
+                <div class="bg-white rounded-xl border-2 border-amber-200 shadow-md p-6 space-y-5">
+                    <div class="flex items-center justify-between border-b border-amber-100 pb-3">
+                        <div class="flex items-center gap-3">
+                            <span class="px-3 py-1 bg-amber-600 text-white font-bold text-xs rounded-md uppercase tracking-wider">M1 Case 1</span>
+                            <h3 class="text-xl font-bold text-slate-900">Acute Injury Athlete Analysis</h3>
+                        </div>
+                        <span class="text-xs text-amber-800 font-medium bg-amber-50 px-3 py-1 rounded-full border border-amber-200">Must detail collision, fall or sudden mechanism</span>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Athlete Name</label>
+                            <input type="text" id="m1_acute_name" value="${acute.name || ''}" oninput="handleM1Input('acute', 'name', this.value)" class="w-full p-2.5 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:outline-none" placeholder="e.g. Eduardo da Silva / Virgil van Dijk">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Specific Acute Injury</label>
+                            <input type="text" id="m1_acute_injury" value="${acute.injury || ''}" oninput="handleM1Input('acute', 'injury', this.value)" class="w-full p-2.5 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:outline-none" placeholder="e.g. Compound Fibula Fracture & Ankle Dislocation">
+                        </div>
+                    </div>
+
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Injury Mechanism (How it occurred)</label>
+                            <span class="text-xs text-amber-700 font-semibold block mb-1">[Player Name] suffered from [Injury] when...</span>
+                            <textarea id="m1_acute_cause" oninput="handleM1Input('acute', 'cause', this.value)" rows="3" class="w-full p-3 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:outline-none" placeholder="Analyse the precise mechanism (e.g. high-velocity tackle, forces, tackle angle)...">${acute.cause || ''}</textarea>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Physiological & Medical Impact</label>
+                            <span class="text-xs text-amber-700 font-semibold block mb-1">This injury meant that physiologically they...</span>
+                            <textarea id="m1_acute_physiological" oninput="handleM1Input('acute', 'physiological', this.value)" rows="3" class="w-full p-3 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:outline-none" placeholder="Analyse tissue damage, surgeries, immobilization, loss of muscle mass, rehab duration...">${acute.physiological || ''}</textarea>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Psychological Effect Link</label>
+                            <span class="text-xs text-amber-700 font-semibold block mb-1">The psychological impact of this was...</span>
+                            <textarea id="m1_acute_psychological" oninput="handleM1Input('acute', 'psychological', this.value)" rows="3" class="w-full p-3 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:outline-none" placeholder="Link to specific psychological impact (e.g. anxiety about tackling, PTSD, confidence loss)...">${acute.psychological || ''}</textarea>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Overall Consequence on Sporting Career</label>
+                            <span class="text-xs text-amber-700 font-semibold block mb-1">This meant that...</span>
+                            <textarea id="m1_acute_consequence" oninput="handleM1Input('acute', 'consequence', this.value)" rows="3" class="w-full p-3 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:outline-none" placeholder="Detail performance changes, tactical adaptations, career length, or legacy...">${acute.consequence || ''}</textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Chronic Athlete Case Study -->
+                <div class="bg-white rounded-xl border-2 border-amber-200 shadow-md p-6 space-y-5">
+                    <div class="flex items-center justify-between border-b border-amber-100 pb-3">
+                        <div class="flex items-center gap-3">
+                            <span class="px-3 py-1 bg-amber-600 text-white font-bold text-xs rounded-md uppercase tracking-wider">M1 Case 2</span>
+                            <h3 class="text-xl font-bold text-slate-900">Chronic Injury Athlete Analysis</h3>
+                        </div>
+                        <span class="text-xs text-amber-800 font-medium bg-amber-50 px-3 py-1 rounded-full border border-amber-200">Must detail repetitive strain or long-term overuse</span>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Athlete Name (Must differ from Acute)</label>
+                            <input type="text" id="m1_chronic_name" value="${chronic.name || ''}" oninput="handleM1Input('chronic', 'name', this.value)" class="w-full p-2.5 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:outline-none" placeholder="e.g. Andy Murray / Rafael Nadal">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Specific Chronic Injury</label>
+                            <input type="text" id="m1_chronic_injury" value="${chronic.injury || ''}" oninput="handleM1Input('chronic', 'injury', this.value)" class="w-full p-2.5 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:outline-none" placeholder="e.g. Chronic Hip Tendonitis & Arthrosis">
+                        </div>
+                    </div>
+
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Injury Mechanism (Overuse & Repetitive Causes)</label>
+                            <span class="text-xs text-amber-700 font-semibold block mb-1">[Player Name] suffered from [Injury] over time because...</span>
+                            <textarea id="m1_chronic_cause" oninput="handleM1Input('chronic', 'cause', this.value)" rows="3" class="w-full p-3 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:outline-none" placeholder="Analyse chronic mechanism (e.g. repetitive loading, high match volume, hard court surfaces)...">${chronic.cause || ''}</textarea>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Physiological & Medical Impact</label>
+                            <span class="text-xs text-amber-700 font-semibold block mb-1">This injury meant that physiologically they...</span>
+                            <textarea id="m1_chronic_physiological" oninput="handleM1Input('chronic', 'physiological', this.value)" rows="3" class="w-full p-3 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:outline-none" placeholder="Analyse progressive tissue degradation, ongoing pain management, hip resurfacing/surgery...">${chronic.physiological || ''}</textarea>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Psychological Effect Link</label>
+                            <span class="text-xs text-amber-700 font-semibold block mb-1">The psychological impact of this was...</span>
+                            <textarea id="m1_chronic_psychological" oninput="handleM1Input('chronic', 'psychological', this.value)" rows="3" class="w-full p-3 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:outline-none" placeholder="Link to frustration during prolonged rehab, depression from reduced ranking, or fear of retirement...">${chronic.psychological || ''}</textarea>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Overall Consequence on Sporting Career</label>
+                            <span class="text-xs text-amber-700 font-semibold block mb-1">This meant that...</span>
+                            <textarea id="m1_chronic_consequence" oninput="handleM1Input('chronic', 'consequence', this.value)" rows="3" class="w-full p-3 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:outline-none" placeholder="Detail altered playing style, reduced schedule, ranking impact, eventual retirement...">${chronic.consequence || ''}</textarea>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Input Handlers
+        function handleInput(section, id, field, value) {
+            if (!appState[section][id]) appState[section][id] = {};
+            appState[section][id][field] = value;
+            saveData();
+        }
+
+        function handleM1Input(category, field, value) {
+            if (!appState.m1[category]) appState.m1[category] = {};
+            appState.m1[category][field] = value;
+            saveData();
+        }
+
+        // Tab Switching
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('block');
+                content.classList.add('hidden');
+            });
+
+            document.getElementById('tab-' + tabId).classList.add('active');
+            document.getElementById('sec-' + tabId).classList.remove('hidden');
+            document.getElementById('sec-' + tabId).classList.add('block');
+
+            // Update Guidance Text based on active tab
+            const gText = document.getElementById('guidance-text');
+            if (tabId === 'p1-acute') {
+                gText.innerHTML = 'For <strong>P1 Acute</strong>, describe feasible causes (fall, collision, overestimating ability), signs (visible/objective), and symptoms (felt/subjective) for all 5 acute injuries.';
+            } else if (tabId === 'p1-chronic') {
+                gText.innerHTML = 'For <strong>P1 Chronic</strong>, describe feasible causes (overuse, overtraining, poor technique, equipment), signs, and symptoms for all 5 chronic injuries.';
+            } else if (tabId === 'p2-psych') {
+                gText.innerHTML = 'For <strong>P2 Psychological Effects</strong>, describe all 6 psychological states (anger, anxiety, depression, isolation, frustration, lack of confidence), including detailed athlete case examples and citations.';
+            } else if (tabId === 'm1-analysis') {
+                gText.innerHTML = 'For <strong>M1 Merit</strong>, select 1 Acute and 1 Chronic athlete (different people). Provide an in-depth analysis linking injury mechanism -> physiological damage -> psychological impact -> career outcome.';
+            } else if (tabId === 'final-report') {
+                gText.innerHTML = 'Here is your consolidated draft report. You can review, refine, copy, or export your work to Word (.doc) or PDF.';
+                compileFinalReport();
+            }
+        }
+
+        // Progress Calculation
+        function updateProgressIndicators() {
+            let acuteCount = 0;
+            ACUTE_INJURIES.forEach(inj => {
+                const item = appState.acute[inj.id] || {};
+                if (item.cause?.trim() && item.sign?.trim() && item.symptom?.trim()) acuteCount++;
+            });
+
+            let chronicCount = 0;
+            CHRONIC_INJURIES.forEach(inj => {
+                const item = appState.chronic[inj.id] || {};
+                if (item.cause?.trim() && item.sign?.trim() && item.symptom?.trim()) chronicCount++;
+            });
+
+            let psychCount = 0;
+            PSYCH_EFFECTS.forEach(eff => {
+                const item = appState.psych[eff.id] || {};
+                if (item.impact?.trim() && item.example?.trim()) psychCount++;
+            });
+
+            let m1Count = 0;
+            const m1A = appState.m1?.acute || {};
+            const m1C = appState.m1?.chronic || {};
+            if (m1A.name?.trim() && m1A.cause?.trim() && m1A.physiological?.trim() && m1A.psychological?.trim()) m1Count++;
+            if (m1C.name?.trim() && m1C.cause?.trim() && m1C.physiological?.trim() && m1C.psychological?.trim()) m1Count++;
+
+            // Update Badges
+            document.getElementById('badge-p1-acute').innerText = `${acuteCount}/5`;
+            document.getElementById('badge-p1-chronic').innerText = `${chronicCount}/5`;
+            document.getElementById('badge-p2-psych').innerText = `${psychCount}/6`;
+            document.getElementById('badge-m1-analysis').innerText = `${m1Count}/2`;
+
+            // Calculate Overall Percent (Total items = 5 + 5 + 6 + 2 = 18)
+            const totalItems = 18;
+            const currentTotal = acuteCount + chronicCount + psychCount + m1Count;
+            const percent = Math.round((currentTotal / totalItems) * 100);
+
+            document.getElementById('overall-progress-text').innerText = `${percent}% Completed`;
+            document.getElementById('overall-progress-bar').style.width = `${percent}%`;
+        }
+
+        // Automated Feedback Engine based on CTEC Specification Criteria
+        function markSection(sectionType) {
+            let container, feedbackHtml = '';
+            let issues = [];
+            let passCount = 0;
+
+            if (sectionType === 'acute') {
+                container = document.getElementById('feedback-acute-summary');
+                ACUTE_INJURIES.forEach(inj => {
+                    const item = appState.acute[inj.id] || {};
+                    const cause = (item.cause || '').trim();
+                    const sign = (item.sign || '').trim();
+                    const symptom = (item.symptom || '').trim();
+
+                    if (!cause || !sign || !symptom) {
+                        issues.push(`<strong>${inj.name}:</strong> Missing one or more required fields (Cause, Sign, or Symptom).`);
+                        return;
+                    }
+
+                    // Quality checks
+                    const lowerCause = cause.toLowerCase();
+                    const acuteKeywords = ['collision', 'fall', 'tackle', 'land', 'landing', 'overestimate', 'impact', 'twist', 'force', 'blow', 'hit', 'drop', 'accident'];
+                    const hasAcuteCause = acuteKeywords.some(kw => lowerCause.includes(kw));
+
+                    if (!hasAcuteCause && cause.length < 25) {
+                        issues.push(`<strong>${inj.name} Cause:</strong> Ensure the cause clearly references a plausible acute mechanism (e.g. collision, fall, or overestimating ability).`);
+                    }
+
+                    // Check sign vs symptom distinction
+                    const lowerSign = sign.toLowerCase();
+                    const lowerSymptom = symptom.toLowerCase();
+                    if (lowerSign.includes('feels pain') || lowerSign.includes('felt')) {
+                        issues.push(`<strong>${inj.name} Sign:</strong> Pain is a subjective symptom felt by the player. A sign should be observable (e.g. swelling, deformity, bruising, immobility).`);
+                    }
+
+                    if (cause.length >= 15 && sign.length >= 15 && symptom.length >= 15) {
+                        passCount++;
+                    }
+                });
+
+                if (issues.length === 0 && passCount === 5) {
+                    feedbackHtml = `
+                        <div class="bg-emerald-50 border border-emerald-300 text-emerald-900 rounded-xl p-5 space-y-2">
+                            <div class="flex items-center gap-2 font-bold text-lg text-emerald-800">
+                                <svg class="w-6 h-6 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                                P1 Criteria Met for Acute Sports Injuries!
+                            </div>
+                            <p class="text-sm text-emerald-800">Excellent work! You have provided feasible acute causes, objective signs, and subjective symptoms for all 5 acute injuries in line with the OCR CTEC Level 3 specification.</p>
+                        </div>`;
+                } else {
+                    feedbackHtml = `
+                        <div class="bg-amber-50 border border-amber-300 text-amber-900 rounded-xl p-5 space-y-3">
+                            <div class="flex items-center gap-2 font-bold text-lg text-amber-800">
+                                <svg class="w-6 h-6 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                                P1 Acute Injuries Feedback (${passCount}/5 Completed Satisfactorily)
+                            </div>
+                            <ul class="list-disc pl-5 text-sm space-y-1 text-amber-900">
+                                ${issues.map(iss => `<li>${iss}</li>`).join('')}
+                            </ul>
+                        </div>`;
+                }
+            } else if (sectionType === 'chronic') {
+                container = document.getElementById('feedback-chronic-summary');
+                CHRONIC_INJURIES.forEach(inj => {
+                    const item = appState.chronic[inj.id] || {};
+                    const cause = (item.cause || '').trim();
+                    const sign = (item.sign || '').trim();
+                    const symptom = (item.symptom || '').trim();
+
+                    if (!cause || !sign || !symptom) {
+                        issues.push(`<strong>${inj.name}:</strong> Missing required fields.`);
+                        return;
+                    }
+
+                    const lowerCause = cause.toLowerCase();
+                    const chronicKeywords = ['overuse', 'overtraining', 'technique', 'repetitive', 'kit', 'equipment', 'footwear', 'shoes', 'racket', 'surface', 'continuous', 'loading', 'volume'];
+                    const hasChronicCause = chronicKeywords.some(kw => lowerCause.includes(kw));
+
+                    if (!hasChronicCause && cause.length < 25) {
+                        issues.push(`<strong>${inj.name} Cause:</strong> Include chronic causes like overuse, overtraining, poor technique, or inappropriate kit/equipment.`);
+                    }
+
+                    if (cause.length >= 15 && sign.length >= 15 && symptom.length >= 15) {
+                        passCount++;
+                    }
+                });
+
+                if (issues.length === 0 && passCount === 5) {
+                    feedbackHtml = `
+                        <div class="bg-emerald-50 border border-emerald-300 text-emerald-900 rounded-xl p-5 space-y-2">
+                            <div class="flex items-center gap-2 font-bold text-lg text-emerald-800">
+                                <svg class="w-6 h-6 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                                P1 Criteria Met for Chronic Sports Injuries!
+                            </div>
+                            <p class="text-sm text-emerald-800">Fantastic detail. All 5 chronic injuries feature appropriate long-term causes, physical signs, and subjective symptoms.</p>
+                        </div>`;
+                } else {
+                    feedbackHtml = `
+                        <div class="bg-amber-50 border border-amber-300 text-amber-900 rounded-xl p-5 space-y-3">
+                            <div class="flex items-center gap-2 font-bold text-lg text-amber-800">
+                                <svg class="w-6 h-6 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                                P1 Chronic Injuries Feedback (${passCount}/5 Completed Satisfactorily)
+                            </div>
+                            <ul class="list-disc pl-5 text-sm space-y-1 text-amber-900">
+                                ${issues.map(iss => `<li>${iss}</li>`).join('')}
+                            </ul>
+                        </div>`;
+                }
+            } else if (sectionType === 'psych') {
+                container = document.getElementById('feedback-psych-summary');
+                PSYCH_EFFECTS.forEach(eff => {
+                    const item = appState.psych[eff.id] || {};
+                    const impact = (item.impact || '').trim();
+                    const example = (item.example || '').trim();
+                    const ref = (item.reference || '').trim();
+
+                    if (!impact || !example) {
+                        issues.push(`<strong>${eff.name}:</strong> Provide both the impact description and a real-life athlete example.`);
+                        return;
+                    }
+
+                    if (!ref) {
+                        issues.push(`<strong>${eff.name} Citation:</strong> Missing reference/source citation for the athlete example.`);
+                    } else {
+                        passCount++;
+                    }
+                });
+
+                if (issues.length === 0 && passCount === 6) {
+                    feedbackHtml = `
+                        <div class="bg-emerald-50 border border-emerald-300 text-emerald-900 rounded-xl p-5 space-y-2">
+                            <div class="flex items-center gap-2 font-bold text-lg text-emerald-800">
+                                <svg class="w-6 h-6 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                                P2 Criteria Met for Psychological Effects!
+                            </div>
+                            <p class="text-sm text-emerald-800">Great work. All 6 psychological impacts feature detailed explanations, referenced real-world athlete case examples, and full citations.</p>
+                        </div>`;
+                } else {
+                    feedbackHtml = `
+                        <div class="bg-amber-50 border border-amber-300 text-amber-900 rounded-xl p-5 space-y-3">
+                            <div class="flex items-center gap-2 font-bold text-lg text-amber-800">
+                                <svg class="w-6 h-6 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                                P2 Psychological Effects Feedback (${passCount}/6 Complete with References)
+                            </div>
+                            <ul class="list-disc pl-5 text-sm space-y-1 text-amber-900">
+                                ${issues.map(iss => `<li>${iss}</li>`).join('')}
+                            </ul>
+                        </div>`;
+                }
+            } else if (sectionType === 'm1') {
+                container = document.getElementById('feedback-m1-summary');
+                const m1A = appState.m1.acute || {};
+                const m1C = appState.m1.chronic || {};
+
+                const acuteName = (m1A.name || '').trim();
+                const chronicName = (m1C.name || '').trim();
+
+                if (!acuteName || !m1A.cause || !m1A.physiological || !m1A.psychological) {
+                    issues.push("<strong>Acute Case Study:</strong> Ensure all 4 sections for the acute athlete are filled out in depth.");
+                }
+
+                if (!chronicName || !m1C.cause || !m1C.physiological || !m1C.psychological) {
+                    issues.push("<strong>Chronic Case Study:</strong> Ensure all 4 sections for the chronic athlete are filled out in depth.");
+                }
+
+                if (acuteName && chronicName && acuteName.toLowerCase() === chronicName.toLowerCase()) {
+                    issues.push("<strong>Athlete Distinction:</strong> Standard requires 1 acute athlete and 1 chronic athlete. You must select two DIFFERENT sportspeople.");
+                }
+
+                if (issues.length === 0) {
+                    feedbackHtml = `
+                        <div class="bg-emerald-50 border border-emerald-300 text-emerald-900 rounded-xl p-5 space-y-2">
+                            <div class="flex items-center gap-2 font-bold text-lg text-emerald-800">
+                                <svg class="w-6 h-6 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                                M1 Merit Criteria Met!
+                            </div>
+                            <p class="text-sm text-emerald-800">Outstanding analytical depth. You have thoroughly linked the injury mechanism, physiological tissue responses, and psychological outcomes for both a distinct acute athlete and a chronic athlete.</p>
+                        </div>`;
+                } else {
+                    feedbackHtml = `
+                        <div class="bg-amber-50 border border-amber-300 text-amber-900 rounded-xl p-5 space-y-3">
+                            <div class="flex items-center gap-2 font-bold text-lg text-amber-800">
+                                <svg class="w-6 h-6 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                                M1 Merit Analysis Feedback
+                            </div>
+                            <ul class="list-disc pl-5 text-sm space-y-1 text-amber-900">
+                                ${issues.map(iss => `<li>${iss}</li>`).join('')}
+                            </ul>
+                        </div>`;
+                }
+            }
+
+            container.innerHTML = feedbackHtml;
+            container.classList.remove('hidden');
+            container.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+
+        // Final Report Compiler Function
+        function compileFinalReport() {
+            let report = [];
+            report.push("================================================================================");
+            report.push("OCR LEVEL 3 CAMBRIDGE TECHNICAL IN SPORT AND PHYSICAL ACTIVITY");
+            report.push("UNIT 17: SPORTS INJURIES AND REHABILITATION - TASK 1 (LO1 REPORT)");
+            report.push("================================================================================\n");
+
+            // SECTION 1: P1 ACUTE
+            report.push("1. P1: SIGNS AND SYMPTOMS OF COMMON ACUTE SPORTS INJURIES");
+            report.push("--------------------------------------------------------------------------------");
+            let hasAcute = false;
+            ACUTE_INJURIES.forEach(inj => {
+                const item = appState.acute[inj.id] || {};
+                const cause = (item.cause || '').trim();
+                const sign = (item.sign || '').trim();
+                const symptom = (item.symptom || '').trim();
+
+                if (cause || sign || symptom) {
+                    hasAcute = true;
+                    report.push(`• ${inj.name.toUpperCase()}:`);
+                    if (cause) report.push(`  - Cause: A cause of a ${inj.name.toLowerCase()} could be ${cause}`);
+                    if (sign) report.push(`  - Sign: A sign of a ${inj.name.toLowerCase()} is ${sign}`);
+                    if (symptom) report.push(`  - Symptom: A common symptom of a ${inj.name.toLowerCase()} is ${symptom}`);
+                    report.push("");
+                }
+            });
+            if (!hasAcute) report.push("[No Acute Injury entries completed yet.]\n");
+
+            // SECTION 2: P1 CHRONIC
+            report.push("2. P1: SIGNS AND SYMPTOMS OF COMMON CHRONIC SPORTS INJURIES");
+            report.push("--------------------------------------------------------------------------------");
+            let hasChronic = false;
+            CHRONIC_INJURIES.forEach(inj => {
+                const item = appState.chronic[inj.id] || {};
+                const cause = (item.cause || '').trim();
+                const sign = (item.sign || '').trim();
+                const symptom = (item.symptom || '').trim();
+
+                if (cause || sign || symptom) {
+                    hasChronic = true;
+                    report.push(`• inj.name.toUpperCase()({inj.detail}):`);
+                    if (cause) report.push(`  - Cause: A cause of ${inj.name.toLowerCase()} could be ${cause}`);
+                    if (sign) report.push(`  - Sign: A sign of ${inj.name.toLowerCase()} is ${sign}`);
+                    if (symptom) report.push(`  - Symptom: A common symptom of ${inj.name.toLowerCase()} is ${symptom}`);
+                    report.push("");
+                }
+            });
+            if (!hasChronic) report.push("[No Chronic Injury entries completed yet.]\n");
+
+            // SECTION 3: P2 PSYCHOLOGICAL EFFECTS
+            report.push("3. P2: POSSIBLE PSYCHOLOGICAL EFFECTS OF SUFFERING A SPORTS INJURY");
+            report.push("--------------------------------------------------------------------------------");
+            let hasPsych = false;
+            PSYCH_EFFECTS.forEach(eff => {
+                const item = appState.psych[eff.id] || {};
+                const impact = (item.impact || '').trim();
+                const example = (item.example || '').trim();
+                const ref = (item.reference || '').trim();
+
+                if (impact || example) {
+                    hasPsych = true;
+                    report.push(`• PSYCHOLOGICAL EFFECT: ${eff.name.toUpperCase()}`);
+                    if (impact) report.push(`  Description: On becoming injured, a psychological impact could be ${eff.name.toLowerCase()} because ${impact}`);
+                    if (example) report.push(`  Real-Life Athlete Case Example: A real-life example of this happening is ${example}`);
+                    if (ref) report.push(`  Citation / Reference Source: [Source: ${ref}]`);
+                    report.push("");
+                }
+            });
+            if (!hasPsych) report.push("[No Psychological Effect entries completed yet.]\n");
+
+            // SECTION 4: M1 INJURY ANALYSIS
+            report.push("4. M1: ANALYSIS OF INJURY MECHANISMS, PHYSIOLOGICAL & PSYCHOLOGICAL EFFECTS");
+            report.push("--------------------------------------------------------------------------------");
+            const m1A = appState.m1.acute || {};
+            const m1C = appState.m1.chronic || {};
+
+            if (m1A.name || m1A.injury) {
+                report.push(`[ACUTE INJURY CASE STUDY ANALYSIS: ${m1A.name || 'Athlete'} - ${m1A.injury || 'Injury'}]`);
+                if (m1A.cause) report.push(`Mechanism of Injury: ${m1A.name} suffered from ${m1A.injury}. This injury occurred when ${m1A.cause}`);
+                if (m1A.physiological) report.push(`Physiological Impact: This injury meant that physiologically they ${m1A.physiological}`);
+                if (m1A.psychological) report.push(`Psychological Link: The psychological impact of this was ${m1A.psychological}`);
+                if (m1A.consequence) report.push(`Long-term Consequence: This meant that ${m1A.consequence}`);
+                report.push("");
+            } else {
+                report.push("[No Acute M1 Athlete Case Study completed yet.]\n");
+            }
+
+            if (m1C.name || m1C.injury) {
+                report.push(`[CHRONIC INJURY CASE STUDY ANALYSIS: ${m1C.name || 'Athlete'} - ${m1C.injury || 'Injury'}]`);
+                if (m1C.cause) report.push(`Mechanism of Injury: ${m1C.name} suffered from ${m1C.injury}. This injury occurred over time when ${m1C.cause}`);
+                if (m1C.physiological) report.push(`Physiological Impact: This injury meant that physiologically they ${m1C.physiological}`);
+                if (m1C.psychological) report.push(`Psychological Link: The psychological impact of this was ${m1C.psychological}`);
+                if (m1C.consequence) report.push(`Long-term Consequence: This meant that ${m1C.consequence}`);
+                report.push("");
+            } else {
+                report.push("[No Chronic M1 Athlete Case Study completed yet.]\n");
+            }
+
+            report.push("================================================================================");
+            report.push("END OF TASK 1 REPORT EVIDENCE");
+            report.push("================================================================================");
+
+            const compiledText = report.join("\n");
+            document.getElementById('final-report-editor').value = compiledText;
+            appState.finalReportText = compiledText;
+
+            // Word count calculate
+            const words = compiledText.trim() ? compiledText.trim().split(/\s+/).length : 0;
+            document.getElementById('report-word-count').innerText = `${words} words`;
+            document.getElementById('report-date').innerText = new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+        }
+
+        // Export Functions
+        function copyReportText() {
+            const editor = document.getElementById('final-report-editor');
+            editor.select();
+            document.execCommand('copy');
+            showToast('Report text copied to clipboard!');
+        }
+
+        function downloadReport(format) {
+            const content = document.getElementById('final-report-editor').value;
+            if (!content) {
+                showToast('Compile the report before downloading');
+                return;
+            }
+
+            let filename = `CTEC_Sport_Unit17_Task1_Report.${format}`;
+            let mimeType = 'text/plain';
+
+            if (format === 'doc') {
+                mimeType = 'application/msword';
+                // Convert plain text to Word-compatible HTML block
+                const htmlContent = `
+                    <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+                    <head><title>CTEC Sport Unit 17 Task 1</title><style>body{font-family:Arial,sans-serif;line-height:1.5;}</style></head>
+                    <body><pre style="font-family:Arial,sans-serif;white-space:pre-wrap;">${content}</pre></body>
+                    </html>
+                `;
+                const blob = new Blob(['\ufeff', htmlContent], { type: mimeType });
+                saveBlob(blob, filename);
+                return;
+            }
+
+            const blob = new Blob([content], { type: mimeType });
+            saveBlob(blob, filename);
+        }
+
+        function saveBlob(blob, filename) {
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = filename;
+            a.click();
+            URL.revokeObjectURL(a.href);
+            showToast(`Downloaded ${filename}`);
+        }
+
+        // Reset Modal Logic
+        const modal = document.getElementById('custom-modal');
+        document.getElementById('reset-btn').addEventListener('click', () => {
+            modal.classList.remove('hidden');
+        });
+        document.getElementById('modal-cancel-btn').addEventListener('click', () => {
+            modal.classList.add('hidden');
+        });
+        document.getElementById('modal-confirm-btn').addEventListener('click', () => {
+            localStorage.removeItem('ctec_u17_t1_state');
+            location.reload();
+        });
+
+        // App Initialization
+        window.onload = function() {
+            loadSavedData();
+            renderAcuteCards();
+            renderChronicCards();
+            renderPsychCards();
+            renderM1Cards();
+            updateProgressIndicators();
+        };
+    </script>
+</body>
+</html>
